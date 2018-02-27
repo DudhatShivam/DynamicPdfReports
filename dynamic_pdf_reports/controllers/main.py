@@ -1,9 +1,9 @@
-from odoo.addons.report.controllers.main import ReportController
-from odoo.addons.web.controllers.main import _serialize_exception, content_disposition
-from odoo import http
+from openerp.addons.report.controllers.main import ReportController
+from openerp.addons.web.controllers.main import _serialize_exception, content_disposition
+from openerp import http
 import json
-from odoo.http import Controller, route, request
-from odoo.tools import html_escape
+from openerp.http import Controller, route, request
+from openerp.tools import html_escape
 import simplejson
 
 class ReportController(ReportController):
@@ -37,7 +37,7 @@ class ReportController(ReportController):
                     response = self.report_routes(reportname, converter='pdf', **dict(data))
 
                 report = request.env['report']._get_report_from_name(reportname)		
-                filename = "%s.%s" % (report.name, "pdf")  
+                filename = "%s.%s" % (report.name, "pdf")
 		
                 if docids:
                     ids = [int(x) for x in docids.split(",")]
@@ -45,16 +45,13 @@ class ReportController(ReportController):
                     # will search the model where reports will get printed 
 		    search_model = request.env['dynamic.reportname'].search([('model_id.model', '=', report.model)])
             # Will bring the list of fields that belongs to the selected model		    
-		    if search_model:	
+		    if search_model:
 			if search_model.field_id.ttype == 'many2one':
 				field = obj.read([search_model.field_id.name])[0][search_model.field_id.name][1]
 			else:
 				field = obj.read([search_model.field_id.name])[0][search_model.field_id.name]
 				# will print the dynamic names for pdf reports
 			filename = (str(field) or report.name) + '.pdf'
-		    
-                    if report.print_report_name and not len(obj) > 1:
-                        filename = safe_eval(report.print_report_name, {'object': obj, 'time': time})
 
                 response.headers.add('Content-Disposition', content_disposition(filename))
                 response.set_cookie('fileToken', token)

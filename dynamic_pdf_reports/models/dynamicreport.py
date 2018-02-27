@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, models, api, _
+from openerp import fields, models, api, _
 
 class DynamicReportname(models.Model):
 

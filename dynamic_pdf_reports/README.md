@@ -1,4 +1,4 @@
-Odoo 10.0 (Community Edition) branch 10.0
+Odoo 9.0 (Community Edition) branch 9.0
 
 Installation 
 ============
