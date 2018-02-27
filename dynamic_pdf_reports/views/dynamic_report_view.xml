@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+        <!-- From view for the dynamic report-->
+		<record id="view_dynamic_report_form" model="ir.ui.view">
+            <field name="name">view.dynamic.report.form</field>
+            <field name="model">dynamic.reportname</field>
+            <field name="type">form</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <form string="Dynamic Report">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="model_id"/>
+                                <field name="field_id" domain="[('model_id', '=', model_id)]"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <!-- Tree view for the dynamic report -->
+        <record id="view_dynamic_report_tree" model="ir.ui.view">
+            <field name="name">view.dynamic.report.tree</field>
+            <field name="model">dynamic.reportname</field>
+            <field name="arch" type="xml">
+                <tree string="Dynamic Report">
+                    <field name="model_id"/>       
+                    <field name="field_id"/>            
+                </tree>
+            </field>
+        </record>
+        <!-- Action view for the dynamic report -->
+        <record model="ir.actions.act_window" id="act_dynamic_report_view">
+            <field name="name">Dynamic Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">dynamic.reportname</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_dynamic_report_tree"/>
+        </record>
+        <!-- Menu placed right below the Reports -->
+        <menuitem
+            id="menu_dynamic_report"
+            parent="report.reporting_menuitem"
+            sequence="2"
+            name="Report Name"
+            action="act_dynamic_report_view"/>
+    </data>
+</odoo>
