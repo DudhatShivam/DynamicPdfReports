@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
 	<data>
         <!-- From view for the dynamic report-->
 		<record id="view_dynamic_report_form" model="ir.ui.view">
@@ -43,9 +43,9 @@
         <!-- Menu placed right below the Reports -->
         <menuitem
             id="menu_dynamic_report"
-            parent="report.reporting_menuitem"
+            parent="base.reporting_menuitem"
             sequence="2"
             name="Report Name"
             action="act_dynamic_report_view"/>
     </data>
-</openerp>
+</odoo>

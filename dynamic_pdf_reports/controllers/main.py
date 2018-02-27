@@ -1,16 +1,16 @@
-from openerp.addons.report.controllers.main import ReportController
-from openerp.addons.web.controllers.main import _serialize_exception, content_disposition
-from openerp import http
+from odoo.addons.web.controllers.main import _serialize_exception, content_disposition
+from odoo import http
 import json
-from openerp.http import Controller, route, request
-from openerp.tools import html_escape
-import simplejson
+import time
+from odoo.http import Controller, route, request
+from odoo.tools import html_escape
+from odoo.tools.safe_eval import safe_eval
+from odoo.addons.web.controllers.main import ReportController
 
 class ReportController(ReportController):
-    @route(['/report/download'], type='http', auth="user")
-    def report_download(self, data, token):
 
-    	# This method has been overwrite
+    @http.route(['/report/download'], type='http', auth="user")
+    def report_download(self, data, token):
         """This function is used by 'qwebactionmanager.js' in order to trigger the download of
         a pdf/controller report.
 
@@ -20,6 +20,7 @@ class ReportController(ReportController):
         """
         requestcontent = json.loads(data)
         url, type = requestcontent[0], requestcontent[1]
+
         try:
             if type == 'qweb-pdf':
                 reportname = url.split('/report/pdf/')[1].split('?')[0]
@@ -36,34 +37,36 @@ class ReportController(ReportController):
                     data = url_decode(url.split('?')[1]).items()  # decoding the args represented in JSON
                     response = self.report_routes(reportname, converter='pdf', **dict(data))
 
-                report = request.env['report']._get_report_from_name(reportname)		
+                report = request.env['ir.actions.report']._get_report_from_name(reportname)
                 filename = "%s.%s" % (report.name, "pdf")
-		
+
                 if docids:
                     ids = [int(x) for x in docids.split(",")]
                     obj = request.env[report.model].browse(ids)
-                    # will search the model where reports will get printed 
-		    search_model = request.env['dynamic.reportname'].search([('model_id.model', '=', report.model)])
-            # Will bring the list of fields that belongs to the selected model		    
-		    if search_model:
-			if search_model.field_id.ttype == 'many2one':
-				field = obj.read([search_model.field_id.name])[0][search_model.field_id.name][1]
-			else:
-				field = obj.read([search_model.field_id.name])[0][search_model.field_id.name]
-				# will print the dynamic names for pdf reports
-			filename = (str(field) or report.name) + '.pdf'
 
+                    if report.print_report_name and not len(obj) > 1:
+                        report_name = safe_eval(report.print_report_name, {'object': obj, 'time': time})
+                        filename = "%s.%s" % (report_name, "pdf")
+
+                    search_model = request.env['dynamic.reportname'].search([('model_id.model', '=', report.model)])
+                    if search_model:
+                        if search_model.field_id.ttype == 'many2one':
+                            field_value = obj.read([search_model.field_id.name])[0]
+                            if field_value[search_model.field_id.name]:
+                                field = obj.read([search_model.field_id.name])[0][search_model.field_id.name][1]
+                                filename = (str(field) or report.name) + '.pdf'
+
+                        else:                            
+                            field = obj.read([search_model.field_id.name])[0][search_model.field_id.name]
+                            filename = (str(field) or report.name) + '.pdf'
+                            # will print the dynamic names for pdf reports
+                    
                 response.headers.add('Content-Disposition', content_disposition(filename))
-                response.set_cookie('fileToken', token)
-                return response
-            elif type == 'controller':
-                reqheaders = Headers(request.httprequest.headers)
-                response = Client(request.httprequest.app, BaseResponse).get(url, headers=reqheaders, follow_redirects=True)
                 response.set_cookie('fileToken', token)
                 return response
             else:
                 return
-        except Exception, e:
+        except Exception as e:
             se = _serialize_exception(e)
             error = {
                 'code': 200,
